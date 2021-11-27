@@ -1,4 +1,4 @@
-# 3d-playground
+# 3D-Playground
 
 ## Project setup
 ```
