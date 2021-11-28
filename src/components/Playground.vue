@@ -4,28 +4,51 @@
       id="sidebar-1"
       bg-variant="dark"
       text-variant="light"
-      title="Sidebar"
+      no-header
       shadow
     >
-      <div class="px-3 py-2">
-        <p>
-          Cras mattis consectetur purus sit amet fermentum. Cras justo odio,
-          dapibus ac facilisis in, egestas eget quam. Morbi leo risus, porta ac
-          consectetur ac, vestibulum at eros.
-        </p>
-        <b-img
-          src="https://picsum.photos/500/500/?image=54"
-          fluid
-          thumbnail
-        ></b-img>
-      </div>
+      <h3 class="mt-5 ml-3">Controls</h3>
+      <v-treeview :items="controlSettings" hoverable dense class="pt-4">
+        <template v-slot:label="{ item }">
+          <b-col :class="!item.children ? 'mb-3' : ''">
+            <span v-if="item.children" class="text-light">{{ item.name }}</span>
+            <b-form-group
+              v-if="!item.children"
+              :label="item.name"
+              class="mr-5"
+              ref="input1"
+            >
+              <b-form-input
+                v-if="item.type === 'input'"
+                type="number"
+                size="sm"
+                step="0.1"
+                v-model="models[selectedModel][item.property][item.axis]"
+                @input="change"
+              />
+              <b-form-checkbox
+                v-if="item.type === 'checkbox'"
+                v-model="models[selectedModel][item.property]"
+                @input="change"
+              />
+            </b-form-group>
+          </b-col>
+        </template>
+      </v-treeview>
     </b-sidebar>
     <div ref="canvas"></div>
     <b-row
       class="position-fixed bottom-0 vw-100 d-flex justify-content-end align-items-end"
     >
       <div class="position-relative mb-5 mr-5 text-light w-25">
-        <input type="file" class="opacity-0" ref="fileInput" @change="onFileUpload" />
+        <input
+          type="file"
+          class="opacity-0"
+          ref="fileInput"
+          @change="onFileUpload"
+          webkitdirectory
+          multiple
+        />
         <b-button
           variant="primary"
           size="lg"
@@ -67,8 +90,99 @@ export default {
       ambientLight: ambientLight,
       axes: axes,
       speed: 0.01,
-      modals: {},
-      modalFile: null,
+      models: {},
+      objectSettings: {},
+      modelFile: null,
+      selectedModel: "gladiator",
+      controlSettings: [
+        {
+          id: 1,
+          name: "Position",
+          children: [
+            {
+              id: 2,
+              name: "Position-X",
+              type: "input",
+              property: "position",
+              axis: "x",
+            },
+            {
+              id: 3,
+              name: "Position-Y",
+              type: "input",
+              property: "position",
+              axis: "y",
+            },
+            {
+              id: 4,
+              name: "Position-Z",
+              type: "input",
+              property: "position",
+              axis: "z",
+            },
+          ],
+        },
+        {
+          id: 5,
+          name: "Rotation",
+          children: [
+            {
+              id: 6,
+              name: "Rotation-X",
+              type: "input",
+              property: "rotation",
+              axis: "_x",
+            },
+            {
+              id: 7,
+              name: "Rotation-Y",
+              type: "input",
+              property: "rotation",
+              axis: "_y",
+            },
+            {
+              id: 8,
+              name: "Rotation-Z",
+              type: "input",
+              property: "rotation",
+              axis: "_z",
+            },
+            {
+              id: 9,
+              name: "Auto Rotate",
+              type: "checkbox",
+              property: "autoRotateEnabled",
+            },
+          ],
+        },
+        {
+          id: 10,
+          name: "Scale",
+          children: [
+            {
+              id: 11,
+              name: "Scale-X",
+              type: "input",
+              property: "scale",
+              axis: "x",
+            },
+            {
+              id: 12,
+              name: "Scale-Y",
+              type: "input",
+              property: "scale",
+              axis: "y",
+            },
+            {
+              id: 13,
+              name: "Scale-Z",
+              type: "input",
+              property: "scale",
+              axis: "z",
+            },
+          ],
+        },
+      ],
     };
   },
   async mounted() {
@@ -77,7 +191,7 @@ export default {
     this.initializeCamera();
     this.initializeControls();
     this.initializeLighting();
-    await this.loadModal('gladiator', '/models/gladiator/gladiator.glb');
+    await this.loadModal("gladiator", "/models/gladiator/gladiator.glb");
     this.animate();
     window.addEventListener("resize", this.onWindowResize, false);
   },
@@ -99,8 +213,8 @@ export default {
       );
       groundTexture.wrapS = THREE.RepeatWrapping;
       groundTexture.wrapT = THREE.RepeatWrapping;
-      groundTexture.repeat.x = 6;
-      groundTexture.repeat.y = 6;
+      groundTexture.repeat.x = 9;
+      groundTexture.repeat.y = 9;
       const planeMaterial = new THREE.MeshStandardMaterial({
         map: groundTexture,
       });
@@ -137,16 +251,25 @@ export default {
     async loadModal(key, url) {
       const modal = await this.modelLoader(url);
       this.scene.add(modal.scene);
-      this.modals[key] = modal.scene;
-      this.modals[key].children.forEach((modalChild)=>{
+      this.models[key] = modal.scene;
+      this.models[key].children.forEach((modalChild) => {
         modalChild.castShadow = true;
-      })
+      });
+      this.models[key].autoRotateEnabled = key === 'gladiator' ? true : false;
     },
     animate() {
       requestAnimationFrame(this.animate);
       this.renderer.render(this.scene, this.camera);
-      this.modals.gladiator.rotation.y += this.speed;
+      for (const key in this.models) {
+        if (this.models[key].autoRotateEnabled) {
+          this.models[key].rotation.y += this.speed;
+        }
+      }
       this.controls.update();
+    },
+    change() {
+      console.log(this.$refs.input);
+      console.log(this.models[this.selectedModel]);
     },
     onWindowResize() {
       this.camera.aspect = window.innerWidth / window.innerHeight;
@@ -154,13 +277,23 @@ export default {
       this.renderer.setSize(window.innerWidth, window.innerHeight);
     },
     onUploadClick() {
-      const fileInput = this.$refs.fileInput
+      const fileInput = this.$refs.fileInput;
       fileInput.click();
     },
     async onFileUpload() {
-      const uploadedFile = this.$refs.fileInput.files[0]
-      const url = URL.createObjectURL(uploadedFile);
-      await this.loadModal(uploadedFile.name.split('.')[0], url);
+      const uploadedFiles = this.$refs.fileInput.files;
+      console.log(uploadedFiles);
+      let gltfURL;
+      let gltfFileName;
+      for (let i = 0; i < uploadedFiles.length; i++) {
+        const url = URL.createObjectURL(uploadedFiles[i]);
+        if (uploadedFiles[i].name.endsWith(".gltf")) {
+          gltfURL = url;
+          gltfFileName = uploadedFiles[i].name;
+        }
+        console.log(url);
+      }
+      await this.loadModal(gltfFileName.split(".")[0], gltfURL);
     },
   },
 };

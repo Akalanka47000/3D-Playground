@@ -2,7 +2,6 @@ import Vue from 'vue'
 import App from './App.vue'
 import vuetify from './plugins/vuetify'
 import { BootstrapVue, IconsPlugin } from 'bootstrap-vue'
-import Aframe from 'aframe'
 import 'bootstrap/dist/css/bootstrap.css'
 import 'bootstrap-vue/dist/bootstrap-vue.css'
 
@@ -22,6 +21,5 @@ Vue.mixin({
 
 new Vue({
   vuetify,
-  Aframe,
   render: h => h(App)
 }).$mount('#app')
