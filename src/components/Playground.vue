@@ -131,21 +131,21 @@ export default {
               name: "Rotation-X",
               type: "input",
               property: "rotation",
-              axis: "_x",
+              axis: "x",
             },
             {
               id: 7,
               name: "Rotation-Y",
               type: "input",
               property: "rotation",
-              axis: "_y",
+              axis: "y",
             },
             {
               id: 8,
               name: "Rotation-Z",
               type: "input",
               property: "rotation",
-              axis: "_z",
+              axis: "z",
             },
             {
               id: 9,
@@ -262,7 +262,7 @@ export default {
       this.renderer.render(this.scene, this.camera);
       for (const key in this.models) {
         if (this.models[key].autoRotateEnabled) {
-          this.models[key].rotation.y += this.speed;
+          this.models[key].rotation.y = Number(this.models[key].rotation.y) + this.speed;
         }
       }
       this.controls.update();
