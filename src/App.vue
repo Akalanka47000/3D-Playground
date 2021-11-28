@@ -1,10 +1,6 @@
 <template>
   <v-app>
-    <v-app-bar
-      app
-      color="primary"
-      dark
-    >
+    <v-app-bar app color="dark" dark>
       <div class="d-flex align-center">
         <v-img
           alt="Vuetify Logo"
@@ -27,30 +23,25 @@
 
       <v-spacer></v-spacer>
 
-      <v-btn
-        href="https://github.com/vuetifyjs/vuetify/releases/latest"
-        target="_blank"
-        text
-      >
-        <span class="mr-2">Latest Release</span>
-        <v-icon>mdi-open-in-new</v-icon>
+      <v-btn v-b-toggle.sidebar-1 text>
+        <b-icon icon="list" font-scale="3"></b-icon>
       </v-btn>
     </v-app-bar>
 
     <v-main>
-      <playground/>
+      <playground />
     </v-main>
   </v-app>
 </template>
 
 <script>
-import Playground from './components/Playground.vue';
+import Playground from "./components/Playground.vue";
 
 export default {
-  name: 'App',
+  name: "App",
 
   components: {
-    Playground
+    Playground,
   },
 };
 </script>

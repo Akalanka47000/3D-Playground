@@ -1,5 +1,42 @@
 <template>
-  <div ref="canvas"></div>
+  <div>
+    <b-sidebar
+      id="sidebar-1"
+      bg-variant="dark"
+      text-variant="light"
+      title="Sidebar"
+      shadow
+    >
+      <div class="px-3 py-2">
+        <p>
+          Cras mattis consectetur purus sit amet fermentum. Cras justo odio,
+          dapibus ac facilisis in, egestas eget quam. Morbi leo risus, porta ac
+          consectetur ac, vestibulum at eros.
+        </p>
+        <b-img
+          src="https://picsum.photos/500/500/?image=54"
+          fluid
+          thumbnail
+        ></b-img>
+      </div>
+    </b-sidebar>
+    <div ref="canvas"></div>
+    <b-row
+      class="position-fixed bottom-0 vw-100 d-flex justify-content-end align-items-end"
+    >
+      <div class="position-relative mb-5 mr-5 text-light w-25">
+        <input type="file" class="opacity-0" ref="fileInput" @change="onFileUpload" />
+        <b-button
+          variant="primary"
+          size="lg"
+          class="mb-5 mr-5 text-light w-100"
+          @click="onUploadClick"
+        >
+          Upload Modal
+        </b-button>
+      </div>
+    </b-row>
+  </div>
 </template>
 
 <script>
@@ -31,6 +68,7 @@ export default {
       axes: axes,
       speed: 0.01,
       modals: {},
+      modalFile: null,
     };
   },
   async mounted() {
@@ -39,7 +77,7 @@ export default {
     this.initializeCamera();
     this.initializeControls();
     this.initializeLighting();
-    await this.loadModal();
+    await this.loadModal('gladiator', '/models/gladiator/gladiator.glb');
     this.animate();
     window.addEventListener("resize", this.onWindowResize, false);
   },
@@ -56,12 +94,16 @@ export default {
 
       //objects
       const planeGeometry = new THREE.PlaneGeometry(20, 20, 32, 32);
-      const groundTexture = new THREE.TextureLoader().load("/models/ground.jpg");
+      const groundTexture = new THREE.TextureLoader().load(
+        "/models/ground.jpg"
+      );
       groundTexture.wrapS = THREE.RepeatWrapping;
       groundTexture.wrapT = THREE.RepeatWrapping;
       groundTexture.repeat.x = 6;
       groundTexture.repeat.y = 6;
-      const planeMaterial = new THREE.MeshStandardMaterial({map: groundTexture});
+      const planeMaterial = new THREE.MeshStandardMaterial({
+        map: groundTexture,
+      });
       const plane = new THREE.Mesh(planeGeometry, planeMaterial);
       plane.rotation.x = -0.5 * Math.PI;
       plane.receiveShadow = true;
@@ -73,7 +115,6 @@ export default {
       this.camera.position.z = 5;
     },
     initializeControls() {
-      console.log(this.$refs.canvas);
       this.controls = new TrackballControls(this.camera, this.$refs.canvas);
       this.controls.rotateSpeed = 2.0;
       this.controls.zoomSpeed = 5;
@@ -93,12 +134,13 @@ export default {
       this.light.shadow.camera.near = 0.5;
       this.light.shadow.camera.far = 500;
     },
-    async loadModal() {
-      const modal = await this.modelLoader("/models/gladiator/gladiator.glb");
+    async loadModal(key, url) {
+      const modal = await this.modelLoader(url);
       this.scene.add(modal.scene);
-      this.modals.gladiator = modal.scene;
-      this.modals.gladiator.children[2].castShadow = true;
-      this.modals.gladiator.children[3].castShadow = true;
+      this.modals[key] = modal.scene;
+      this.modals[key].children.forEach((modalChild)=>{
+        modalChild.castShadow = true;
+      })
     },
     animate() {
       requestAnimationFrame(this.animate);
@@ -111,14 +153,14 @@ export default {
       this.camera.updateProjectionMatrix();
       this.renderer.setSize(window.innerWidth, window.innerHeight);
     },
-  },
-  computed: {
-    rotate() {
-      if (this.speed === "") {
-        return 0;
-      } else {
-        return this.speed;
-      }
+    onUploadClick() {
+      const fileInput = this.$refs.fileInput
+      fileInput.click();
+    },
+    async onFileUpload() {
+      const uploadedFile = this.$refs.fileInput.files[0]
+      const url = URL.createObjectURL(uploadedFile);
+      await this.loadModal(uploadedFile.name.split('.')[0], url);
     },
   },
 };
